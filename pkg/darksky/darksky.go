@@ -11,6 +11,7 @@ import (
 	"github.com/weirdtales/darksky/pkg/google"
 )
 
+// Darksky maps to an API response
 type Darksky struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
@@ -29,11 +30,17 @@ type Darksky struct {
 		Pressure            float64 `json:"pressure"`
 		Ozone               float64 `json:"ozone"`
 	} `json:"currently"`
+	Minutely struct {
+		Summary string `json:"summary"`
+		Icon    string `json:"icon"`
+	} `json:"minutely"`
 	Daily struct {
 		Summary string `json:"summary"`
+		Icon    string `json:"icon"`
 	} `json:"daily"`
 	Hourly struct {
 		Summary string `json:"summary"`
+		Icon    string `json:"icon"`
 	} `json:"hourly"`
 
 	GoogleName string // use the google maps FormattedAddress value - it's good
@@ -41,6 +48,7 @@ type Darksky struct {
 
 var httpClient = &http.Client{Timeout: 10 * time.Second}
 
+// Get takes a location struct and returns a darksky one
 func Get(loc geocode.Location, imperial *bool) (d Darksky, err error) {
 	token := os.Getenv("DARKSKY_TOKEN")
 	if token == "" {
@@ -55,21 +63,21 @@ func Get(loc geocode.Location, imperial *bool) (d Darksky, err error) {
 	}
 	url := "https://api.darksky.net/forecast/%s/%f,%f?units=%s"
 	url = fmt.Sprintf(url, token, loc.Results[0].Geometry.Location.Lat, loc.Results[0].Geometry.Location.Lng, units)
-	fmt.Println(url)
+	//fmt.Println(url)
 
-	err = getJson(url, &d)
+	err = getJSON(url, &d)
 	if err != nil {
 		return
 	}
 
 	if d.Timezone == "" {
-    	fmt.Printf("%+v\n", d)
+		fmt.Printf("%+v\n", d)
 		err = fmt.Errorf("No data for that location")
 	}
 	return
 }
 
-func getJson(url string, i interface{}) error {
+func getJSON(url string, i interface{}) error {
 	r, err := httpClient.Get(url)
 	if err != nil {
 		return err
