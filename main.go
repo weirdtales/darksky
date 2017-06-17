@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/weirdtales/darksky/pkg/darksky"
 	"github.com/weirdtales/darksky/pkg/google"
@@ -18,17 +19,16 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	q := flag.Arg(0)
+	q := strings.Join(flag.Args(), " ")
 	if q == "" {
 		usage()
 	}
-	fmt.Println(q)
 
 	loc, err := geocode.Find(q)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v\n", loc)
+	fmt.Printf("%s (%f, %f)\n", loc.Results[0].FormattedAddress, loc.Results[0].Geometry.Location.Lng, loc.Results[0].Geometry.Location.Lat)
 
 	d, err := darksky.Get(loc, imperial)
 	if err != nil {

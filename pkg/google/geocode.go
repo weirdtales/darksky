@@ -1,5 +1,5 @@
-// geocode uses google's public maps API to convert a human-writable string
-// into a formatted address and a pair of coordinates.
+// Package geocode uses google's public maps API to convert a human-writable
+// string into a formatted address and a pair of coordinates.
 package geocode
 
 import (
@@ -8,8 +8,10 @@ import (
 
 	"encoding/json"
 	"net/http"
+	"net/url"
 )
 
+// Location represents a response from Google's Geocode API
 type Location struct {
 	Results []struct {
 		FormattedAddress string `json:"formatted_address"`
@@ -24,12 +26,13 @@ type Location struct {
 
 var httpClient = &http.Client{Timeout: 10 * time.Second}
 
-// GetLocation returns a struct of location details for the supplied query string.
+// Find returns a struct of location details for the supplied query string.
 func Find(q string) (loc Location, err error) {
+	q = url.QueryEscape(q)
 	url := "http://maps.googleapis.com/maps/api/geocode/json?address=%s&sensor=false"
 	url = fmt.Sprintf(url, q)
 
-	err = getJson(url, &loc)
+	err = getJSON(url, &loc)
 	if err != nil {
 		return
 	}
@@ -40,7 +43,7 @@ func Find(q string) (loc Location, err error) {
 	return
 }
 
-func getJson(url string, i interface{}) error {
+func getJSON(url string, i interface{}) error {
 	r, err := httpClient.Get(url)
 	if err != nil {
 		return err
