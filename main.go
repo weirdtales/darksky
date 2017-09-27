@@ -1,4 +1,3 @@
-// darksky displays data from the Dark Sky API.
 package main
 
 import (
@@ -6,52 +5,44 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
+	"github.com/dedelala/round"
+	"github.com/dedelala/sysexits"
 	"github.com/weirdtales/darksky/pkg/darksky"
-	"github.com/weirdtales/darksky/pkg/google"
-)
-
-var (
-	imperial = flag.Bool("i", false, "use non-SI units")
+	"github.com/weirdtales/darksky/pkg/gmap"
 )
 
 func main() {
-	flag.Usage = usage
+	units := flag.String("u", "si", "units: auto, ca, uk2, us, si")
 	flag.Parse()
+
+	token := os.Getenv("DARKSKY_TOKEN")
+	if token == "" {
+		fmt.Fprintf(os.Stderr, "DARKSKY_TOKEN environ var missing or empty")
+		os.Exit(sysexits.Usage)
+	}
 
 	q := strings.Join(flag.Args(), " ")
 	if q == "" {
-		usage()
+		flag.Usage()
+		os.Exit(sysexits.Usage)
 	}
 
-	loc, err := geocode.Find(q)
+	loc, err := gmap.Find(q)
 	if err != nil {
-		panic(err)
+		fmt.Fprint(os.Stderr, err.Error())
+		os.Exit(sysexits.Unavailable)
 	}
+	spout := round.NewSpinMe(os.Stdout, round.Block)
+	fmt.Fprintf(&spout, "%s ", loc)
 
-	d, err := darksky.Get(loc, imperial)
+	res, err := darksky.Forecast(token, *loc, *units)
+	spout.Close()
+	fmt.Println()
 	if err != nil {
-		panic(err)
+		fmt.Fprint(os.Stderr, err.Error())
+		os.Exit(sysexits.Unavailable)
 	}
-
-	printDarksky(&d)
-}
-
-func usage() {
-	fmt.Fprintf(os.Stderr, "usage: darksky [options] query...\n")
-	fmt.Fprintf(os.Stderr, "flags:\n")
-	flag.PrintDefaults()
-	os.Exit(2)
-}
-
-func printDarksky(d *darksky.Darksky) {
-	tz, _ := time.LoadLocation(d.Timezone)
-	t := time.Unix(d.Currently.Time, 0)
-	fmt.Printf("%s @ %s\n", d.GoogleName, t.In(tz).Format("2006-01-02 15:04:05"))
-	fmt.Printf("Current temperature:\t%f\n", d.Currently.Temperature)
-	fmt.Printf("Current apparent temp:\t%f\n", d.Currently.ApparentTemperature)
-	fmt.Printf("Current summary:\t%s\n", d.Currently.Summary)
-	fmt.Printf("Hourly summary:\t\t%s\n", d.Hourly.Summary)
-	fmt.Printf("Daily summary:\t\t%s\n", d.Daily.Summary)
+	fmt.Println(res)
+	os.Exit(sysexits.OK)
 }
