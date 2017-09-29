@@ -82,8 +82,9 @@ func (r Result) String() string {
 	fmt.Fprintf(w, "\t%s\n", getBar(r.Hourly.Data))
 	fmt.Fprintf(w, "Daily\t%s\n", r.Daily.Summary)
 	fmt.Fprintf(w, "\t%s\n", getBar(r.Daily.Data))
-	w.Flush()
-	bw.Flush()
+
+	_ = w.Flush()
+	_ = bw.Flush()
 	return b.String()
 }
 
@@ -96,7 +97,7 @@ func getBar(d []dataPoint) string {
 	sort.Float64s(vals)
 	rs := "\x1b[0m"
 	for i, p := range d {
-		o += getBarColor(i) + fmt.Sprint(getBlock(p.Temp, vals)) + rs
+		o += getBarColor(i) + getBlock(p.Temp, vals) + rs
 	}
 
 	min, max := getMinMax(vals)
