@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/dedelala/round"
 	"github.com/dedelala/sysexits"
@@ -38,7 +39,8 @@ func main() {
 
 	res, err := darksky.Forecast(token, *loc, *units)
 	spout.Close()
-	fmt.Println()
+	sloc := fmt.Sprintf("%s", loc)
+	fmt.Printf("\n%s\n", strings.Repeat("-", utf8.RuneCountInString(sloc)))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(sysexits.Unavailable)
