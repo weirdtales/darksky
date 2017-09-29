@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sort"
 	"text/tabwriter"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/weirdtales/darksky/pkg/gmap"
 )
 
+// this is an abstraction of the DataPoint structure returned by darksky.
 type dataPoint struct {
 	Time       int64   `json:"time"`
 	Summary    string  `json:"summary"`
@@ -31,14 +33,9 @@ type dataPoint struct {
 
 // Result is a single result from the API.
 type Result struct {
-	TZ       string    `json:"timezone"`
-	Current  dataPoint `json:"currently"`
-	Minutely struct {
-		Summary string      `json:"summary"`
-		Icon    string      `json:"icon"`
-		Data    []dataPoint `json:"data"`
-	} `json:"minutely"`
-	Daily struct {
+	TZ      string    `json:"timezone"`
+	Current dataPoint `json:"currently"`
+	Daily   struct {
 		Summary string      `json:"summary"`
 		Icon    string      `json:"icon"`
 		Data    []dataPoint `json:"data"`
@@ -57,9 +54,10 @@ var apiURL = "https://api.darksky.net/forecast/%s/%f,%f?units=%s"
 
 var blocks = []string{"▁", "▂", "▃", "▄", "▅", "▆", "▇"}
 
-// Forecast ...
+// Forecast uses a token to query Darksky about a gmap.Location. An error is
+// returned if the API hit fails.
 func Forecast(token string, loc gmap.Location, units string) (*Result, error) {
-	u := fmt.Sprintf(apiURL, token, loc.Lat, loc.Lng, units)
+	u := fmt.Sprintf(apiURL, token, loc.Lat, loc.Lng, url.QueryEscape(units))
 	r := &Result{Loc: loc}
 	err := get(u, r)
 	if err != nil {
@@ -71,14 +69,14 @@ func Forecast(token string, loc gmap.Location, units string) (*Result, error) {
 	return r, nil
 }
 
-// StdPrint ...
+// Result stringer.
 func (r Result) String() string {
 	var b bytes.Buffer
 	bw := bufio.NewWriter(&b)
 	w := tabwriter.NewWriter(bw, 0, 0, 2, ' ', 0)
 	fmt.Fprintf(w, "Timezone\t%s\n", r.TZ)
 	fmt.Fprintf(w, "Currently\t%s\n", r.Current.Summary)
-	fmt.Fprintf(w, "Temp (AT)\t%.1f (%.1f)\n", r.Current.Temp, r.Current.ATemp)
+	fmt.Fprintf(w, "Temp (AT)\t%.1f° (%.1f°)\n", r.Current.Temp, r.Current.ATemp)
 
 	fmt.Fprintf(w, "Hourly\t%s\n", r.Hourly.Summary)
 	fmt.Fprintf(w, "\t%s\n", getBar(r.Hourly.Data))
@@ -96,10 +94,27 @@ func getBar(d []dataPoint) string {
 		vals = append(vals, p.Temp)
 	}
 	sort.Float64s(vals)
-	for _, p := range d {
-		o += fmt.Sprint(getBlock(p.Temp, vals))
+	rs := "\x1b[0m"
+	for i, p := range d {
+		o += getBarColor(i) + fmt.Sprint(getBlock(p.Temp, vals)) + rs
 	}
+
+	min, max := getMinMax(vals)
+	o += fmt.Sprintf(" %.0f %.0f", min, max)
 	return o
+}
+
+func getBarColor(i int) string {
+	cl := "\x1b[36m"
+	ch := "\x1b[1;36m"
+	csix := "\x1b[37m"
+	if i%2 == 0 {
+		if i%6 == 0 {
+			return csix
+		}
+		return cl
+	}
+	return ch
 }
 
 func getMinMax(d []float64) (float64, float64) {
