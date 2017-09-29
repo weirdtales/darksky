@@ -30,7 +30,7 @@ func main() {
 
 	loc, err := gmap.Find(q)
 	if err != nil {
-		fmt.Fprint(os.Stderr, err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(sysexits.Unavailable)
 	}
 	spout := round.NewSpinMe(os.Stdout, round.Block)
@@ -40,7 +40,7 @@ func main() {
 	spout.Close()
 	fmt.Println()
 	if err != nil {
-		fmt.Fprint(os.Stderr, err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(sysexits.Unavailable)
 	}
 	fmt.Println(res)
