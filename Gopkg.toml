@@ -1,0 +1,7 @@
+[[constraint]]
+  branch = "master"
+  name = "github.com/dedelala/round"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/dedelala/sysexits"
