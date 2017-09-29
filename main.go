@@ -38,9 +38,12 @@ func main() {
 	fmt.Fprintf(&spout, "%s ", loc)
 
 	res, err := darksky.Forecast(token, *loc, *units)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(sysexits.Unavailable)
+	}
 	spout.Close()
-	sloc := fmt.Sprintf("%s", loc)
-	fmt.Printf("\n%s\n", strings.Repeat("-", utf8.RuneCountInString(sloc)))
+	fmt.Printf("\n%s\n", strings.Repeat("-", utf8.RuneCountInString(loc.String())))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(sysexits.Unavailable)
