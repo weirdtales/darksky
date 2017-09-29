@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"text/tabwriter"
 	"time"
 
@@ -80,40 +81,57 @@ func (r Result) String() string {
 	fmt.Fprintf(w, "Temp (AT)\t%.1f (%.1f)\n", r.Current.Temp, r.Current.ATemp)
 
 	fmt.Fprintf(w, "Hourly\t%s\n", r.Hourly.Summary)
-	fmt.Fprintf(w, "Temps\t%s\n", getBar(r.Hourly.Data))
+	fmt.Fprintf(w, "\t%s\n", getBar(r.Hourly.Data))
+	fmt.Fprintf(w, "Daily\t%s\n", r.Daily.Summary)
+	fmt.Fprintf(w, "\t%s\n", getBar(r.Daily.Data))
 	w.Flush()
 	bw.Flush()
 	return b.String()
 }
 
 func getBar(d []dataPoint) string {
-	min, max := getMinMax(d)
 	o := ""
-	for i, p := range d {
-		o += fmt.Sprint(getBlock(p.Temp, min, max))
-		if i > 10 {
-			break
-		}
+	vals := []float64{}
+	for _, p := range d {
+		vals = append(vals, p.Temp)
+	}
+	sort.Float64s(vals)
+	for _, p := range d {
+		o += fmt.Sprint(getBlock(p.Temp, vals))
 	}
 	return o
 }
 
-func getMinMax(d []dataPoint) (float64, float64) {
+func getMinMax(d []float64) (float64, float64) {
 	min := 1000.0
 	max := 0.0
-	for _, p := range d {
-		if p.Temp > max {
-			max = p.Temp
+	for _, v := range d {
+		if v > max {
+			max = v
 		}
-		if p.Temp < min {
-			min = p.Temp
+		if v < min {
+			min = v
 		}
 	}
 	return min, max
 }
 
-func getBlock(v, min, max float64) string {
-	return blocks[0]
+func getBlock(v float64, d []float64) string {
+	i := 0
+	n := len(d)
+	nb := len(blocks)
+	switch {
+	case n < 2:
+		i = 0
+	case n == nb:
+		i = 1
+	case n < nb:
+		i = 7
+	case n > nb:
+		sd := sort.Float64Slice(d)
+		i = sd.Search(v) / (n / nb)
+	}
+	return blocks[i]
 }
 
 // get ...
