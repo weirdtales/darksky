@@ -80,8 +80,7 @@ func (r Result) String() string {
 
 	fmt.Fprintf(w, "Hourly\t%s\n", r.Hourly.Summary)
 	fmt.Fprintf(w, "\t%s\n", getBar(r.Hourly.Data))
-	fmt.Fprintf(w, "Daily\t%s\n", r.Daily.Summary)
-	fmt.Fprintf(w, "\t%s\n", getBar(r.Daily.Data))
+	fmt.Fprintf(w, "Daily\t%s", r.Daily.Summary)
 
 	_ = w.Flush()
 	_ = bw.Flush()
