@@ -34,15 +34,15 @@ func main() {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(sysexits.Unavailable)
 	}
-	spout := round.NewSpinMe(os.Stdout, round.Block)
-	fmt.Fprintf(&spout, "%s ", loc)
+	round.Go(round.Block)
+	fmt.Fprintf(round.Stdout, "%s ", loc)
 
 	res, err := darksky.Forecast(token, *loc, *units)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		fmt.Fprintln(round.Stderr, err.Error())
 		os.Exit(sysexits.Unavailable)
 	}
-	spout.Close()
+	round.Stop()
 	fmt.Printf("\n%s\n", strings.Repeat("-", utf8.RuneCountInString(loc.String())))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
