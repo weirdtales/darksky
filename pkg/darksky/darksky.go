@@ -95,11 +95,16 @@ func getBar(d []dataPoint) string {
 	}
 	sort.Float64s(vals)
 	rs := "\x1b[0m"
+	var bc string
+	min, max := getMinMax(vals)
 	for i, p := range d {
-		o += getBarColor(i) + getBlock(p.Temp, vals) + rs
+		bc = getBarColor(i)
+		if p.Temp == max {
+			bc = "\x1b[31m"
+		}
+		o += bc + getBlock(p.Temp, vals) + rs
 	}
 
-	min, max := getMinMax(vals)
 	o += fmt.Sprintf(" %.0f %.0f", min, max)
 	return o
 }
