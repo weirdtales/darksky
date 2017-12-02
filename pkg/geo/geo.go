@@ -1,5 +1,6 @@
-// Package gmap is a real basic interface into the Google maps API.
-package gmap
+// Package geo is a lean abstraction over Google maps, freegeoip, and possibly
+// other geoinformation APIs.
+package geo
 
 import (
 	"encoding/json"

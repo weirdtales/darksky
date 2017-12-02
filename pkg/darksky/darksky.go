@@ -12,7 +12,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/weirdtales/darksky/pkg/gmap"
+	"github.com/weirdtales/darksky/pkg/geo"
 )
 
 // this is an abstraction of the DataPoint structure returned by darksky.
@@ -45,7 +45,7 @@ type Result struct {
 		Icon    string      `json:"icon"`
 		Data    []dataPoint `json:"data"`
 	} `json:"hourly"`
-	Loc gmap.Location
+	Loc geo.Location
 }
 
 var httpClient = &http.Client{Timeout: 10 * time.Second}
@@ -54,9 +54,9 @@ var apiURL = "https://api.darksky.net/forecast/%s/%f,%f?units=%s"
 
 var blocks = []string{"▁", "▂", "▃", "▄", "▅", "▆", "▇"}
 
-// Forecast uses a token to query Darksky about a gmap.Location. An error is
+// Forecast uses a token to query Darksky about a geo.Location. An error is
 // returned if the API hit fails.
-func Forecast(token string, loc gmap.Location, units string) (*Result, error) {
+func Forecast(token string, loc geo.Location, units string) (*Result, error) {
 	u := fmt.Sprintf(apiURL, token, loc.Lat, loc.Lng, url.QueryEscape(units))
 	r := &Result{Loc: loc}
 	err := get(u, r)

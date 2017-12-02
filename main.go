@@ -10,7 +10,7 @@ import (
 	"github.com/dedelala/round"
 	"github.com/dedelala/sysexits"
 	"github.com/weirdtales/darksky/pkg/darksky"
-	"github.com/weirdtales/darksky/pkg/gmap"
+	"github.com/weirdtales/darksky/pkg/geo"
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 		os.Exit(sysexits.Usage)
 	}
 
-	loc, err := gmap.Find(q)
+	loc, err := geo.Find(q)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(sysexits.Unavailable)
