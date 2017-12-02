@@ -1,3 +1,1 @@
 language: go
-before_install:
-  - go get -u github.com/dedelala/round
